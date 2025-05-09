@@ -1,0 +1,3 @@
+LocationFrom=c:\\Users\\Dev\\OneDrive\\Desktop\\SymbolFiles
+LocationTo=c:\\Users\\Dev\\OneDrive\\Desktop\\MergedFile
+n=100
