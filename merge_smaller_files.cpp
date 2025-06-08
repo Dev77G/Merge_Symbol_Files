@@ -1,23 +1,25 @@
 #include "combine.hpp"
 
-std::atomic<int> counter(1);
+static int filename_counter = 1;
+std::mutex partial_part_mtx;
 
-std::string merge_smaller_files(std::vector<std::string>&some_symbol_files_path, std::vector<std::string> &filenames, std::string &LocationTo){
+void merge_smaller_files(std::vector<std::string>some_symbol_files_path, std::vector<std::string>filenames, std::string &LocationTo,std::vector<std::string> &larger_files_path){
+    Wait(); //Put current thread to sleep if it active threads exceed sema_count
     int n = some_symbol_files_path.size();
-    // using smart pointers to open and point to n files
-    std::vector<std::unique_ptr<std::ifstream>> files; 
+    std::vector<std::unique_ptr<std::ifstream>> files; // using smart pointers to open and point to n files
     for (std::string &single_file : some_symbol_files_path) {
         auto file = std::make_unique<std::ifstream>(single_file);
         if (file->is_open()) {
             files.push_back(std::move(file));
         }
     }
+
+    std::priority_queue<std::pair<std::string,int>,std::vector<std::pair<std::string,int>>,std::greater<std::pair<std::string,int>>>somelines;
     // min priority queue to access the data in ascending order
     // format : {TimestampSymbol#line_from_file , pointer number}
-    // Using this format the lines come out in asc order of TimeStamp , Symbol 
+    // Using this format the lines come out of priority_queue in ascending order of {TimeStamp , Symbol} 
     // used # to handle files with same prefix like BANK , BANKNIFTY 
     // for same timestamp BANK should come first so used # as ASCII(#) < ASCII(A-Z)       
-    std::priority_queue<std::pair<std::string,int>,std::vector<std::pair<std::string,int>>,std::greater<std::pair<std::string,int>>>somelines;
     std::string line , ToSortBy , LineToWrite;
     // storing the first line of n symbol files in the priority queue (not the column names) 
     for(int i = 0 ; i < n ; i++){
@@ -40,10 +42,14 @@ std::string merge_smaller_files(std::vector<std::string>&some_symbol_files_path,
             std::cout<<"Some Symbol Files are Empty\n";
         }
     }
-    // used atomic variable to name file so if multithreading is used then also no conflicts in naming file are seen 
-    int x = counter++;
+    
+    //using lock so that two files don't get same name
+    partial_part_mtx.lock();
+    int x = filename_counter++;
     // temporarily made new file containg n symbol files with naming as : 1.txt, 2.txt, ...
     std::string new_filename = LocationTo + "\\" + std::to_string(x) + ".txt"; 
+    partial_part_mtx.unlock();
+
     std::ofstream new_file(new_filename);
     if (new_file.is_open()) {
         // will write to new file till priority queue is empty and queue will have atmost n lines at any point of time
@@ -65,6 +71,13 @@ std::string merge_smaller_files(std::vector<std::string>&some_symbol_files_path,
     else {
         std::cout << "Failed to create the file to combine smaller text files.\n";
     }
-    // return the path of new temporary large file
-    return new_filename;
+
+    // attach the path of new temporary large file
+    // using lock so that two threads cannot make changes to larger_files_path at the same time 
+    partial_part_mtx.lock();
+    larger_files_path.push_back(new_filename);
+    partial_part_mtx.unlock();
+    
+    Notify();
+    return ;
 }

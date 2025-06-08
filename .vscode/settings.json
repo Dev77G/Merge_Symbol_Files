@@ -67,6 +67,21 @@
         "ranges": "cpp",
         "span": "cpp",
         "unordered_map": "cpp",
-        "xhash": "cpp"
+        "xhash": "cpp",
+        "codecvt": "cpp",
+        "condition_variable": "cpp",
+        "cstdarg": "cpp",
+        "cwctype": "cpp",
+        "memory_resource": "cpp",
+        "numeric": "cpp",
+        "random": "cpp",
+        "string_view": "cpp",
+        "future": "cpp",
+        "mutex": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "variant": "cpp"
     }
 }

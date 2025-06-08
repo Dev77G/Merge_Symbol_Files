@@ -1,3 +1,4 @@
 LocationFrom=c:\\Users\\Dev\\OneDrive\\Desktop\\SymbolFiles
 LocationTo=c:\\Users\\Dev\\OneDrive\\Desktop\\MergedFile
-n=100
+threads=3
+n=3
